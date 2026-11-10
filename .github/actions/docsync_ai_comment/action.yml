@@ -54,6 +54,9 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Current branch: $CURRENT_BRANCH"
+
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -68,8 +71,9 @@ runs:
 
         git add README.md
         git commit -m "docs: DocSync AI update from comment (CWE-862 PoC)"
-        git push origin HEAD
+        git push origin HEAD:"$CURRENT_BRANCH"
 
         echo ""
         echo "=== TERMINAL IMPACT ==="
-        echo "Commit pushed to branch by a commenter with NO identity verification."
+        echo "Commit pushed to branch '$CURRENT_BRANCH' by a commenter with NO identity verification."
+        echo "Pushed commit SHA: $(git rev-parse HEAD)"
