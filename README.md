@@ -12,9 +12,3 @@ text (`startsWith(body, '@docbot')`), never the commenter's identity.
 1. Create a pull request in this repo
 2. Post a comment: `@docbot update only readme <any text>`
 3. Observe the workflow fires and pushes a commit — with NO identity check
-
-## DocSync AI Update
-
-Updated by DocSync AI from PR comment.
-Content: Security research PoC — attacker-controlled text written without identity check (CWE-862)
-Timestamp: 2026-11-10T14:03:44Z
