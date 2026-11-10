@@ -1,8 +1,5 @@
 name: DocSync AI Comment Handler (PoC Replica)
-description: |
-  Simplified replica of deriv-com/shared-actions docsync_ai_comment.
-  Demonstrates: comment body → instruction extraction → file write → git push.
-  Skips Anthropic API call (not needed to prove the authorization gap).
+description: Simplified replica proving the authorization gap
 
 inputs:
   comment_body:
@@ -21,40 +18,35 @@ runs:
     - name: Parse command
       id: parse
       shell: bash
+      env:
+        COMMENT_BODY: ${{ inputs.comment_body }}
       run: |
-        COMMENT_BODY="${{ inputs.comment_body }}"
         # Strip @docbot prefix — same as original line 110
-        INSTRUCTION=$(echo "$COMMENT_BODY" | sed 's/^@docbot\s*//')
+        INSTRUCTION=$(echo "$COMMENT_BODY" | sed 's/^@docbot[[:space:]]*//')
 
-        # Same logic as original: empty instruction = no-op
         if [ -z "$INSTRUCTION" ]; then
           echo "valid=false" >> $GITHUB_OUTPUT
           echo "command=none" >> $GITHUB_OUTPUT
-          echo "No instruction provided — exiting (same as original)"
+          echo "No instruction — exiting (same as original)"
           exit 0
         fi
 
-        # Check for update command
         if echo "$INSTRUCTION" | grep -qi "^update only readme"; then
-          TEXT=$(echo "$INSTRUCTION" | sed 's/^update only readme\s*//')
+          TEXT=$(echo "$INSTRUCTION" | sed 's/^update only readme[[:space:]]*//')
           echo "valid=true" >> $GITHUB_OUTPUT
           echo "command=update" >> $GITHUB_OUTPUT
-          echo "text=$TEXT" >> $GITHUB_OUTPUT
-        elif echo "$INSTRUCTION" | grep -qi "^revert"; then
-          echo "valid=true" >> $GITHUB_OUTPUT
-          echo "command=revert" >> $GITHUB_OUTPUT
+          # Save text to file to avoid YAML injection
+          echo "$TEXT" > /tmp/docbot-text.txt
         else
           echo "valid=false" >> $GITHUB_OUTPUT
           echo "command=unknown" >> $GITHUB_OUTPUT
           exit 0
         fi
 
-        # Log: no identity check performed (proving CWE-862)
         echo ""
         echo "=== AUTHORIZATION CHECK ==="
-        echo "comment_author: N/A"
+        echo "comment_author: N/A (NOT CHECKED — CWE-862)"
         echo "author_association: NOT CHECKED"
-        echo "Proceeding with command from ANY commenter."
 
     - name: Write to README and push
       if: steps.parse.outputs.valid == 'true' && steps.parse.outputs.command == 'update'
@@ -65,24 +57,19 @@ runs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Append attacker-controlled text to README
+        TEXT=$(cat /tmp/docbot-text.txt 2>/dev/null || echo "(no text)")
+
         echo "" >> README.md
         echo "## DocSync AI Update" >> README.md
         echo "" >> README.md
         echo "Updated by DocSync AI from PR comment." >> README.md
-        echo "Content: ${{ steps.parse.outputs.text }}" >> README.md
+        echo "Content: $TEXT" >> README.md
         echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> README.md
 
         git add README.md
-        git commit -m "docs: DocSync AI update from comment
-
-Automated by DocSync AI
-Comment author association: NOT CHECKED (CWE-862 PoC)"
-
+        git commit -m "docs: DocSync AI update from comment (CWE-862 PoC)"
         git push origin HEAD
 
         echo ""
         echo "=== TERMINAL IMPACT ==="
-        echo "Commit pushed to branch by an unauthenticated commenter."
-        echo "In the original workflow, this uses DOCSYNC_GITHUB_TOKEN (PAT)."
-        echo "This PoC uses the default GITHUB_TOKEN to demonstrate the same path."
+        echo "Commit pushed to branch by a commenter with NO identity verification."
