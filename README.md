@@ -12,3 +12,17 @@ text (`startsWith(body, '@docbot')`), never the commenter's identity.
 1. Create a pull request in this repo
 2. Post a comment: `@docbot update only readme <any text>`
 3. Observe the workflow fires and pushes a commit — with NO identity check
+
+<!-- test branch for DocSync AI PoC -->
+
+## DocSync AI Update
+
+Updated by DocSync AI from PR comment.
+Content: CWE-862 PoC run 2 — any commenter can trigger this
+Timestamp: 2026-11-10T14:07:02Z
+
+## DocSync AI Update
+
+Updated by DocSync AI from PR comment.
+Content: Cross-identity PoC — posted by hackeronelucasfutures-web (outsider)
+Timestamp: 2026-11-10T14:08:52Z
