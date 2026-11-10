@@ -14,3 +14,9 @@ text (`startsWith(body, '@docbot')`), never the commenter's identity.
 3. Observe the workflow fires and pushes a commit — with NO identity check
 
 <!-- test branch for DocSync AI PoC -->
+
+## DocSync AI Update
+
+Updated by DocSync AI from PR comment.
+Content: CWE-862 PoC run 2 — any commenter can trigger this
+Timestamp: 2026-11-10T14:07:02Z
